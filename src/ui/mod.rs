@@ -9,11 +9,12 @@ use tui::{
 
 use crate::data::DataFetchService;
 
-use self::{notification_feed::build_notification_feed, tui_event::{Event, Events}, weather::build_weather_info};
+use self::{clock::build_clock, notification_feed::build_notification_feed, tui_event::{Event, Events}, weather::build_weather_info};
 
 mod notification_feed;
 mod tui_event;
 mod weather;
+mod clock;
 
 /// Begins the render loop and blocks on it
 pub fn block_render_looping(
@@ -45,6 +46,10 @@ pub fn block_render_looping(
                 // Render the weather widget
                 let weather_widget = build_weather_info(&data_frame);
                 f.render_widget(weather_widget, left_panel[1]);
+
+                // Render the clock widget
+                let clock_widget = build_clock(&data_frame);
+                f.render_widget(clock_widget, left_panel[0]);
                 
             })
             .unwrap();
