@@ -12,7 +12,7 @@ pub fn build_weather_info<'a>(data: &'a OnScreenData) -> Paragraph<'a> {
         .borders(Borders::ALL);
 
     Paragraph::new(
-        Text::raw(data.raw_weather.clone().replace("\n", "\n>")),
+        Text::raw(data.raw_weather.clone().replace("\n", "\n.")),
     )
     .block(container)
     .alignment(Alignment::Left)
