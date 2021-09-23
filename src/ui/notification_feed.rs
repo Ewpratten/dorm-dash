@@ -12,7 +12,8 @@ pub fn build_notification_feed<'a>(data: &'a OnScreenData) -> Paragraph<'a> {
     // Create the container
     let container = Block::default()
         .title("Notifications")
-        .borders(Borders::ALL);
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Yellow));
 
     Paragraph::new(
         data.notifications

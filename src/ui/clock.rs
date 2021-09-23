@@ -1,11 +1,6 @@
-use chrono::{Local, Utc};
+use chrono::Local;
 use figlet_rs::FIGfont;
-use tui::{
-    layout::Alignment,
-    style::{Color, Modifier, Style},
-    text::{Span, Spans, Text},
-    widgets::{Block, Borders, List, ListItem, Paragraph, Wrap},
-};
+use tui::{layout::Alignment, style::{Color, Style}, text::Text, widgets::{Block, Borders, Paragraph, Wrap}};
 
 use crate::data::OnScreenData;
 
