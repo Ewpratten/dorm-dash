@@ -9,13 +9,11 @@ use tui::{
 
 use crate::data::DataFetchService;
 
-use self::{
-    notification_feed::build_notification_feed,
-    tui_event::{Event, Events},
-};
+use self::{notification_feed::build_notification_feed, tui_event::{Event, Events}, weather::build_weather_info};
 
 mod notification_feed;
 mod tui_event;
+mod weather;
 
 /// Begins the render loop and blocks on it
 pub fn block_render_looping(
@@ -37,6 +35,17 @@ pub fn block_render_looping(
                 // Render the notification feed
                 let notification_feed = build_notification_feed(&data_frame);
                 f.render_widget(notification_feed, chunks[1]);
+
+                // Set up the left panel
+                let left_panel = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(25), Constraint::Percentage(75)].as_ref())
+                    .split(chunks[0]);
+                
+                // Render the weather widget
+                let weather_widget = build_weather_info(&data_frame);
+                f.render_widget(weather_widget, left_panel[1]);
+                
             })
             .unwrap();
 

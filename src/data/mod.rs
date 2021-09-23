@@ -12,6 +12,7 @@ mod rss;
 #[derive(Debug, Clone, Default)]
 pub struct OnScreenData {
     pub notifications: Vec<String>,
+    pub raw_weather: String,
 }
 
 pub struct DataFetchService {
@@ -39,23 +40,32 @@ impl DataFetchService {
         self.thread_rx = Some(rx);
 
         thread::spawn(move || {
-            // Build a new data object
-            let mut data = OnScreenData::default();
+            loop {
+                // Build a new data object
+                let mut data = OnScreenData::default();
 
-            // Get every twitter user's feed
-            let mut rss_data = Vec::new();
-            for user in &thread_config.twitter_sources {
-                if let Ok(mut user_feed) =
-                    fetch_rss_text_feed(&format!("https://nitter.net/{}/rss", user))
-                {
-                    rss_data.append(&mut user_feed);
+                // Get every twitter user's feed
+                let mut rss_data = Vec::new();
+                for user in &thread_config.twitter_sources {
+                    if let Ok(mut user_feed) =
+                        fetch_rss_text_feed(&format!("https://nitter.net/{}/rss", user))
+                    {
+                        rss_data.append(&mut user_feed);
+                    }
                 }
-            }
-            rss_data.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-            data.notifications.append(&mut rss_data.iter().map(|x| x.text.clone()).collect());
+                rss_data.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+                data.notifications
+                    .append(&mut rss_data.iter().map(|x| x.text.clone()).collect());
 
-            // Send the data to the main thread
-            tx.send(data).unwrap();
+                // Get the weather
+                data.raw_weather = reqwest::blocking::get("http://wttr.in/?2QnmAFTp").unwrap().text().unwrap();
+
+                // Send the data to the main thread
+                tx.send(data).unwrap();
+
+                // Wait for a few seconds
+                thread::sleep(std::time::Duration::from_secs(15));
+            }
         })
     }
 
