@@ -1,10 +1,9 @@
 [package]
 name = "dorm-dash"
+publish = false
 version = "0.1.0"
 authors = ["Evan Pratten <ewpratten@gmail.com>"]
 edition = "2018"
-description = "<description>"
-documentation = "https://docs.rs/dorm-dash"
 readme = "README.md"
 homepage = "https://github.com/ewpratten/dorm-dash"
 repository = "https://github.com/ewpratten/dorm-dash"
