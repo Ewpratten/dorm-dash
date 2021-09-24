@@ -75,7 +75,7 @@ impl DataFetchService {
                 );
 
                 // Get the weather
-                data.raw_weather = reqwest::blocking::get("http://wttr.in/?QnmAFTp")
+                data.raw_weather = reqwest::blocking::get("http://wttr.in/?QnmAF")
                     .unwrap()
                     .text()
                     .unwrap();

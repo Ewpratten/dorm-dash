@@ -9,12 +9,14 @@ use tui::{
 
 use crate::data::DataFetchService;
 
-use self::{clock::build_clock, notification_feed::build_notification_feed, tui_event::{Event, Events}, weather::build_weather_info};
+use self::components::{
+    clock::build_clock, notification_feed::build_notification_feed, weather::build_weather_info,
+};
+use self::tui_event::{Event, Events};
 
-mod notification_feed;
+mod components;
+mod utils;
 mod tui_event;
-mod weather;
-mod clock;
 
 /// Begins the render loop and blocks on it
 pub fn block_render_looping(
@@ -30,19 +32,26 @@ pub fn block_render_looping(
             .draw(|f| {
                 let chunks = Layout::default()
                     .direction(Direction::Horizontal)
-                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+                    .constraints(
+                        [
+                            Constraint::Percentage(32),
+                            Constraint::Percentage(30),
+                            Constraint::Percentage(30),
+                        ]
+                        .as_ref(),
+                    )
                     .split(f.size());
 
                 // Render the notification feed
                 let notification_feed = build_notification_feed(&data_frame);
-                f.render_widget(notification_feed, chunks[1]);
+                f.render_widget(notification_feed, chunks[2]);
 
                 // Set up the left panel
                 let left_panel = Layout::default()
                     .direction(Direction::Vertical)
-                    .constraints([Constraint::Percentage(25), Constraint::Percentage(75)].as_ref())
+                    .constraints([Constraint::Percentage(15), Constraint::Percentage(68), Constraint::Percentage(17)].as_ref())
                     .split(chunks[0]);
-                
+
                 // Render the weather widget
                 let weather_widget = build_weather_info(&data_frame);
                 f.render_widget(weather_widget, left_panel[1]);
@@ -50,7 +59,6 @@ pub fn block_render_looping(
                 // Render the clock widget
                 let clock_widget = build_clock(&data_frame);
                 f.render_widget(clock_widget, left_panel[0]);
-                
             })
             .unwrap();
 
