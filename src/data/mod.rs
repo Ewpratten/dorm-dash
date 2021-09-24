@@ -1,16 +1,14 @@
 use std::sync::mpsc::{self, Receiver};
 
 use chrono::{DateTime, Local, Utc};
+use log::info;
 use tokio::{task::JoinHandle, time::sleep};
 
 use crate::config::Config;
 
-use self::{
-    rss::fetch_rss_text_feed,
-    weather::{
-        api::{get_ansii_weather, get_programmatic_weather},
-        model::WttrData,
-    },
+use self::weather::{
+    api::{get_ansi_weather, get_programmatic_weather},
+    model::WttrData,
 };
 
 mod rss;
@@ -52,6 +50,7 @@ impl DataFetchService {
 
         tokio::spawn(async move {
             loop {
+                info!("Running data job");
                 // Build a new data object
                 let mut data = OnScreenData::default();
 
@@ -59,6 +58,7 @@ impl DataFetchService {
                 data.timestamp = Some(Local::now());
 
                 // Fetch all tweets
+                info!("Fetching Tweets");
                 let mut tweets = itertools::concat(
                     thread_config
                         .twitter_sources
@@ -81,7 +81,8 @@ impl DataFetchService {
                     .collect();
 
                 // Fetch the weather
-                data.raw_weather = get_ansii_weather()
+                info!("Fetching Weather");
+                data.raw_weather = get_ansi_weather()
                     .await
                     .unwrap_or("Could not fetch the weather!".to_string());
                 data.weather = get_programmatic_weather()
@@ -92,7 +93,7 @@ impl DataFetchService {
                 tx.send(data).unwrap();
 
                 // Wait for a few seconds
-                sleep(std::time::Duration::from_secs(15)).await;
+                sleep(std::time::Duration::from_secs(30)).await;
             }
         })
     }

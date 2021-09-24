@@ -5,6 +5,8 @@ mod ui;
 use clap::{crate_authors, crate_description, crate_name, crate_version, App, Arg};
 
 use data::DataFetchService;
+use log::{LevelFilter, info};
+use tui_logger::{init_logger, set_default_level};
 use std::{error::Error, io};
 use termion::{raw::IntoRawMode, screen::AlternateScreen};
 use tui::{backend::TermionBackend, Terminal};
@@ -26,6 +28,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .get_matches();
 
+    // Configure logging
+    init_logger(LevelFilter::Trace).unwrap();
+    set_default_level(LevelFilter::Info);
+
     // Get data
     let config: Config = autojson::structify(matches.value_of("config").unwrap())
         .expect("Failed to load config file");
@@ -37,10 +43,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     // Begin the data fetching service
+    info!("Starting data service");
     let mut data_service = DataFetchService::new(&config);
     data_service.start().await;
 
     // Begin the render loop
+    info!("Starting render loop");
     block_render_looping(&mut terminal, &mut data_service);
 
     Ok(())

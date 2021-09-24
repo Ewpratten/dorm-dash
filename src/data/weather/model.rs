@@ -3,7 +3,7 @@ use serde::Deserialize;
 #[derive(Deserialize, Debug, Clone)]
 pub struct WttrHour {
     #[serde(rename = "tempC")]
-    pub temperature: i8,
+    pub temperature: String,
 }
 
 #[derive(Deserialize, Debug, Default, Clone)]

@@ -9,14 +9,12 @@ use tui::{
 
 use crate::data::DataFetchService;
 
-use self::components::{
-    clock::build_clock, notification_feed::build_notification_feed, weather::build_weather_info,
-};
+use self::components::{clock::build_clock, log::build_log_viewer, notification_feed::build_notification_feed, weather::{build_weather_info, render_weather_graph}};
 use self::tui_event::{Event, Events};
 
 mod components;
-mod utils;
 mod tui_event;
+mod utils;
 
 /// Begins the render loop and blocks on it
 pub fn block_render_looping(
@@ -49,16 +47,40 @@ pub fn block_render_looping(
                 // Set up the left panel
                 let left_panel = Layout::default()
                     .direction(Direction::Vertical)
-                    .constraints([Constraint::Percentage(15), Constraint::Percentage(68), Constraint::Percentage(17)].as_ref())
+                    .constraints(
+                        [
+                            Constraint::Percentage(15),
+                            Constraint::Percentage(68),
+                            Constraint::Percentage(17),
+                        ]
+                        .as_ref(),
+                    )
                     .split(chunks[0]);
-
-                // Render the weather widget
-                let weather_widget = build_weather_info(&data_frame);
-                f.render_widget(weather_widget, left_panel[1]);
 
                 // Render the clock widget
                 let clock_widget = build_clock(&data_frame);
                 f.render_widget(clock_widget, left_panel[0]);
+
+                // Render the weather widget
+                let weather_widget = build_weather_info(&data_frame);
+                render_weather_graph(&data_frame, f, left_panel[2]);
+                f.render_widget(weather_widget, left_panel[1]);
+
+                // Set up center panel
+                let center_panel = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints(
+                        [
+                            Constraint::Percentage(50),
+                            Constraint::Percentage(50),
+                        ]
+                        .as_ref(),
+                    )
+                    .split(chunks[1]);
+
+                // Render the log viewer
+                let log_viewer = build_log_viewer(&data_frame);
+                f.render_widget(log_viewer, center_panel[1]);
             })
             .unwrap();
 

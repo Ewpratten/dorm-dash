@@ -26,3 +26,5 @@ figlet-rs = "0.1"
 ansi-to-tui = "0.4"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 itertools = "0.10"
+log = "0.4"
+tui-logger = "0.6"
