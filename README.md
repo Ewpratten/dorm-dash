@@ -9,3 +9,7 @@ This program runs permanently on a Raspberry Pi hooked up to a wall-mounted TV i
 ```sh
 cross build --release --target armv7-unknown-linux-gnueabihf
 ```
+
+## Screenshots
+
+![](./dorm-dash.png)
