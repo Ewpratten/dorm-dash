@@ -1,8 +1,7 @@
 use ansi_to_tui::ansi_to_text;
 use tui::{
     layout::Alignment,
-    style::{Color, Modifier, Style},
-    text::{Span, Spans, Text},
+    style::{Color, Style},
     widgets::{Block, Borders, Paragraph, Wrap},
 };
 

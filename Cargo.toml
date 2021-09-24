@@ -21,6 +21,8 @@ termion = "1.5"
 easy_rss = "1.0"
 autojson = "0.1"
 chrono = "0.4"
-reqwest = { version = "0.11", features = ["blocking"] }
+reqwest = { version = "0.11", features = ["blocking", "json"] }
 figlet-rs = "0.1"
 ansi-to-tui = "0.4"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+itertools = "0.10"

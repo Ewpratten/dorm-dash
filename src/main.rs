@@ -12,7 +12,8 @@ use ui::block_render_looping;
 
 use crate::config::Config;
 
-fn main() -> Result<(), Box<dyn Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     let matches = App::new(crate_name!())
         .author(crate_authors!())
         .about(crate_description!())
@@ -37,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Begin the data fetching service
     let mut data_service = DataFetchService::new(&config);
-    data_service.start();
+    data_service.start().await;
 
     // Begin the render loop
     block_render_looping(&mut terminal, &mut data_service);

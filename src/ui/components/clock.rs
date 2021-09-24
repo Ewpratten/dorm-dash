@@ -4,14 +4,13 @@ use figlet_rs::FIGfont;
 use tui::{
     layout::Alignment,
     style::{Color, Style},
-    text::Text,
     widgets::{Block, Borders, Paragraph, Wrap},
 };
 
 use crate::{data::OnScreenData, ui::utils::pre_pad_raw_text};
 
 /// Build the clock widget
-pub fn build_clock<'a>(data: &'a OnScreenData) -> Paragraph<'a> {
+pub fn build_clock<'a>(_data: &'a OnScreenData) -> Paragraph<'a> {
     // Create the container
     let container = Block::default()
         .title("Clock")

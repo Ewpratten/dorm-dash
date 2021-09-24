@@ -1,6 +1,6 @@
 use tui::{
     layout::Alignment,
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, Paragraph, Wrap},
 };

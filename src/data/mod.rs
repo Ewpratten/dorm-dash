@@ -1,21 +1,29 @@
-use std::{
-    sync::mpsc::{self, Receiver},
-    thread::{self, JoinHandle},
-};
+use std::sync::mpsc::{self, Receiver};
 
 use chrono::{DateTime, Local, Utc};
+use tokio::{task::JoinHandle, time::sleep};
 
 use crate::config::Config;
 
-use self::rss::fetch_rss_text_feed;
+use self::{
+    rss::fetch_rss_text_feed,
+    weather::{
+        api::{get_ansii_weather, get_programmatic_weather},
+        model::WttrData,
+    },
+};
 
 mod rss;
+mod twitter;
+mod weather;
 
+/// All data that is sent between coroutines.
 #[derive(Debug, Clone, Default)]
 pub struct OnScreenData {
     pub notifications: Vec<String>,
     pub raw_weather: String,
     pub timestamp: Option<DateTime<Local>>,
+    pub weather: WttrData,
 }
 
 pub struct DataFetchService {
@@ -34,7 +42,7 @@ impl DataFetchService {
         }
     }
 
-    pub fn start(&mut self) -> JoinHandle<()> {
+    pub async fn start(&mut self) -> JoinHandle<()> {
         // Make a clone of the config for use in-thread
         let thread_config = self.config.clone();
 
@@ -42,52 +50,49 @@ impl DataFetchService {
         let (tx, rx) = mpsc::channel();
         self.thread_rx = Some(rx);
 
-        thread::spawn(move || {
+        tokio::spawn(async move {
             loop {
                 // Build a new data object
                 let mut data = OnScreenData::default();
 
-                // Get every twitter user's feed
-                let mut rss_data = Vec::new();
-                for user in &thread_config.twitter_sources {
-                    if let Ok(mut user_feed) =
-                        fetch_rss_text_feed(&format!("https://nitter.net/{}/rss", user))
-                    {
-                        rss_data.append(&mut user_feed);
-                    }
-                }
-                rss_data.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-                data.notifications.append(
-                    &mut rss_data
-                        .iter()
-                        .filter(|item| {
-                            Utc::now() - item.timestamp.with_timezone(&Utc)
-                                < chrono::Duration::hours(3)
-                        })
-                        .map(|x| {
-                            format!(
-                                "[{}] {}",
-                                x.timestamp.with_timezone(&Local).format("%H:%M"),
-                                x.text.clone()
-                            )
-                        })
-                        .collect(),
-                );
-
-                // Get the weather
-                data.raw_weather = reqwest::blocking::get("http://wttr.in/?QnmAF")
-                    .unwrap()
-                    .text()
-                    .unwrap();
-
                 // Set the timestamp
                 data.timestamp = Some(Local::now());
+
+                // Fetch all tweets
+                let mut tweets = itertools::concat(
+                    thread_config
+                        .twitter_sources
+                        .iter()
+                        .filter_map(|source| twitter::fetch_tweets(&source).ok()),
+                );
+                tweets.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+                data.notifications = tweets
+                    .iter()
+                    .filter(|item| {
+                        Utc::now() - item.timestamp.with_timezone(&Utc) < chrono::Duration::hours(3)
+                    })
+                    .map(|t| {
+                        format!(
+                            "[{}] {}",
+                            t.timestamp.with_timezone(&Local).format("%H:%M"),
+                            t.content.clone()
+                        )
+                    })
+                    .collect();
+
+                // Fetch the weather
+                data.raw_weather = get_ansii_weather()
+                    .await
+                    .unwrap_or("Could not fetch the weather!".to_string());
+                data.weather = get_programmatic_weather()
+                    .await
+                    .unwrap_or(WttrData::default());
 
                 // Send the data to the main thread
                 tx.send(data).unwrap();
 
                 // Wait for a few seconds
-                thread::sleep(std::time::Duration::from_secs(15));
+                sleep(std::time::Duration::from_secs(15)).await;
             }
         })
     }
